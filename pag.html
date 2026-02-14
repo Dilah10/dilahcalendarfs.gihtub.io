@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario con Tareas</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    .calendar {
+        width: 100%;
+        max-width: 800px;
+        background: #1e1e1e;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .header button {
+        background: #c40000;
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .days, .dates {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+    }
+
+    .days div {
+        font-weight: bold;
+        padding: 10px 0;
+        border-bottom: 1px solid #333;
+    }
+
+    .dates div {
+        padding: 15px 5px;
+        border: 1px solid #333;
+        min-height: 80px;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .dates div:hover {
+        background: #333;
+    }
+
+    .task {
+        background: #c40000;
+        font-size: 0.7em;
+        padding: 2px 4px;
+        margin-top: 5px;
+        border-radius: 3px;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: #222;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+    }
+
+    .modal input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+    }
+
+    .modal button {
+        width: 100%;
+        padding: 8px;
+        background: #c40000;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+<h1>Calendario de Tareas</h1>
+
+<div class="calendar">
+    <div class="header">
+        <button onclick="changeMonth(-1)">◀</button>
+        <h2 id="monthYear"></h2>
+        <button onclick="changeMonth(1)">▶</button>
+    </div>
+
+    <div class="days">
+        <div>Dom</div>
+        <div>Lun</div>
+        <div>Mar</div>
+        <div>Mié</div>
+        <div>Jue</div>
+        <div>Vie</div>
+        <div>Sáb</div>
+    </div>
+
+    <div class="dates" id="dates"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="taskModal">
+    <div class="modal-content">
+        <h3>Añadir tarea</h3>
+        <input type="text" id="taskInput" placeholder="Escribe la tarea">
+        <button onclick="saveTask()">Guardar</button>
+    </div>
+</div>
+
+<script>
+    const monthYear = document.getElementById("monthYear");
+    const datesContainer = document.getElementById("dates");
+    const modal = document.getElementById("taskModal");
+    const taskInput = document.getElementById("taskInput");
+
+    let currentDate = new Date();
+    let selectedDate = null;
+
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+
+        monthYear.textContent = currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
+        datesContainer.innerHTML = "";
+
+        for (let i = 0; i < firstDay; i++) {
+            datesContainer.innerHTML += "<div></div>";
+        }
+
+        for (let day = 1; day <= lastDate; day++) {
+            const dateDiv = document.createElement("div");
+            dateDiv.textContent = day;
+
+            const fullDate = `${year}-${month}-${day}`;
+            const tasks = JSON.parse(localStorage.getItem(fullDate)) || [];
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement("div");
+                taskDiv.classList.add("task");
+                taskDiv.textContent = task;
+                dateDiv.appendChild(taskDiv);
+            });
+
+            dateDiv.onclick = () => openModal(fullDate);
+            datesContainer.appendChild(dateDiv);
+        }
+    }
+
+    function changeMonth(direction) {
+        currentDate.setMonth(currentDate.getMonth() + direction);
+        renderCalendar();
+    }
+
+    function openModal(date) {
+        selectedDate = date;
+        modal.style.display = "flex";
+    }
+
+    function saveTask() {
+        const taskText = taskInput.value.trim();
+        if (!taskText) return;
+
+        const tasks = JSON.parse(localStorage.getItem(selectedDate)) || [];
+        tasks.push(taskText);
+        localStorage.setItem(selectedDate, JSON.stringify(tasks));
+
+        taskInput.value = "";
+        modal.style.display = "none";
+        renderCalendar();
+    }
+
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    renderCalendar();
+</script>
+
+</body>
+</html>
