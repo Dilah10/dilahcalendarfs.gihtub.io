@@ -57,11 +57,12 @@
     }
 
     .dates div {
-        padding: 15px 5px;
+        padding: 10px 5px;
         border: 1px solid #333;
-        min-height: 80px;
+        min-height: 100px;
         cursor: pointer;
         position: relative;
+        font-size: 0.9em;
     }
 
     .dates div:hover {
@@ -71,8 +72,21 @@
     .task {
         background: #c40000;
         font-size: 0.7em;
-        padding: 2px 4px;
-        margin-top: 5px;
+        padding: 4px;
+        margin-top: 4px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .delete-btn {
+        background: black;
+        border: none;
+        color: white;
+        font-size: 0.8em;
+        cursor: pointer;
+        padding: 2px 5px;
         border-radius: 3px;
     }
 
@@ -123,13 +137,8 @@
     </div>
 
     <div class="days">
-        <div>Dom</div>
-        <div>Lun</div>
-        <div>Mar</div>
-        <div>Mié</div>
-        <div>Jue</div>
-        <div>Vie</div>
-        <div>Sáb</div>
+        <div>Dom</div><div>Lun</div><div>Mar</div>
+        <div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
     </div>
 
     <div class="dates" id="dates"></div>
@@ -175,10 +184,23 @@
             const fullDate = `${year}-${month}-${day}`;
             const tasks = JSON.parse(localStorage.getItem(fullDate)) || [];
 
-            tasks.forEach(task => {
+            tasks.forEach((task, index) => {
                 const taskDiv = document.createElement("div");
                 taskDiv.classList.add("task");
-                taskDiv.textContent = task;
+
+                const span = document.createElement("span");
+                span.textContent = task;
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "X";
+                deleteBtn.classList.add("delete-btn");
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteTask(fullDate, index);
+                };
+
+                taskDiv.appendChild(span);
+                taskDiv.appendChild(deleteBtn);
                 dateDiv.appendChild(taskDiv);
             });
 
@@ -207,6 +229,13 @@
 
         taskInput.value = "";
         modal.style.display = "none";
+        renderCalendar();
+    }
+
+    function deleteTask(date, index) {
+        const tasks = JSON.parse(localStorage.getItem(date)) || [];
+        tasks.splice(index, 1);
+        localStorage.setItem(date, JSON.stringify(tasks));
         renderCalendar();
     }
 
